@@ -33,6 +33,24 @@ async def dice(context, *args):
         await Bot.say(context.message.author.mention + " je n'ai pas compris...")
 
 
+@Bot.command(name='muz',
+             description='play a video from youtube URL',
+             brief=' - audio from YT',
+             pass_context=True)
+async def muz(context, url):
+    if url == 'quit':
+        await Bot.disconnect()
+    else:
+        currentChan = context.message.author.voice_channel
+        voiceJoin = await Bot.join_voice_channel(channel=currentChan)
+        player = await voiceJoin.create_ytdl_player(url)
+        player.start()
+
+
+@Bot.command(name='quit',
+             description='disconnect bigBot from current vocal channel',
+             brief=' - disconnect from vocal')
+
 @Bot.event
 async def on_message(message):
     if message.author != Bot.user and 'jojo' in message.content:
