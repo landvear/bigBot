@@ -28,10 +28,8 @@ def dice(operation):
     # enlève les espaces
     operation = str(operation.replace(" ", ""))
     rollParameters = re.findall(regexRollnum, operation)
-
     # lance les dés, stock les opérations et leurs résultats dans un tableau
     operation = buildDiceArrays(operation, operationArray, resultArray, rollParameters)
-
     # Construit un embed à partir des tableaux d'opération et de résultat
     try:
         embed = buildEmbed(operation, operationArray, resultArray)
@@ -40,6 +38,7 @@ def dice(operation):
         return 'Commande incorecte'
 
 
+# construit le message à afficher dans le chat
 def buildEmbed(operation, operationArray, resultArray):
     embed = discord.Embed(title='Dice roll result')
     for index in range(len(operationArray)):

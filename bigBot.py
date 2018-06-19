@@ -1,11 +1,12 @@
 import random
 import diceFunctions
+import cineSearch
 import discord
 from discord.ext.commands import Bot
 from discord import Game
+import json
 
 botPrefix = ("!", "?")
-
 Bot = Bot(command_prefix=botPrefix)
 
 
@@ -33,23 +34,54 @@ async def dice(context, *args):
         await Bot.say(context.message.author.mention + " je n'ai pas compris...")
 
 
-@Bot.command(name='muz',
-             description='play a video from youtube URL',
-             brief=' - audio from YT',
-             pass_context=True)
-async def muz(context, url):
-    if url == 'quit':
-        await Bot.disconnect()
-    else:
-        currentChan = context.message.author.voice_channel
-        voiceJoin = await Bot.join_voice_channel(channel=currentChan)
-        player = await voiceJoin.create_ytdl_player(url)
-        player.start()
+@Bot.command(name='join',
+             pass_context=True,
+             description='Connect bigBot to user channel',
+             brief=' - connect to a vocal channel')
+async def join(context):
+    currentChan = context.message.author.voice_channel
+    try:
+        await Bot.join_voice_channel(currentChan)
+        print('joined ' + str(currentChan))
+    except discord.ClientException:
+        await Bot.say(' Je suis déjà dans un autre channel')
+    except discord.InvalidArgument:
+        await Bot.say(' Ce channel est invalide')
+
+
+@Bot.command(name='play',
+             pass_context=True,
+             description='play a video from youtube on a discord voice channel',
+             brief=' - audio from YT')
+async def play(context, url):
+    currentChan = context.message.author.voice_channel
+    for vc in Bot.voice_clients:
+        if (vc.server == context.message.server):
+            player = await vc.create_ytdl_player(url)
+            player.start()
+
 
 
 @Bot.command(name='quit',
              description='disconnect bigBot from current vocal channel',
-             brief=' - disconnect from vocal')
+             brief=' - disconnect from vocal',
+             pass_context=True)
+async def quit(context):
+    for vc in Bot.voice_clients:
+        if (vc.server == context.message.server):
+            return await vc.disconnect()
+
+
+@Bot.command(name='cinema',
+             description='look for infos about a movie on betaseries',
+             brief=' - info on a movie',
+             pass_context=True)
+async def cinema(context, *args):
+    # result = cineSearch.getMovieInfo(469)
+    result = cineSearch.searchTitle(str(args))
+    await Bot.say(embed=result)
+
+
 
 @Bot.event
 async def on_message(message):
@@ -75,4 +107,6 @@ async def on_ready():
 async def on_error():
     await Bot.say("Je n'ai pas compris...")
 
-Bot.run('NDQ3NDE2MzY2NTM4OTQ4NjE4.DeL5Vw.3rFPZ_ZrKGcm-zZ0Ns73BL49zjM')
+with open("./bot.conf", "r") as file:
+    conf = json.load(file)
+Bot.run(conf["token"])
